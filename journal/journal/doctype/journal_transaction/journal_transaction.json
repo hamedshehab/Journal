@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-27 15:16:55.884702",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "customer",
+  "units",
+  "unit_price",
+  "currency",
+  "type",
+  "amended_from",
+  "datetime",
+  "currency_link",
+  "column_break_pwsh",
+  "details",
+  "amount",
+  "old_balance",
+  "new_balance"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Journal Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "currency_link",
+   "reqd": 1
+  },
+  {
+   "default": "YER",
+   "fieldname": "currency",
+   "fieldtype": "Select",
+   "label": "Currency",
+   "options": "YER\nSAR\nUSD",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Small Text",
+   "label": "Details"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "\nDebit\nCredit",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Journal Transaction",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "datetime",
+   "fieldtype": "Datetime",
+   "label": "Date / Time"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "currency_link",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Currency Link",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_pwsh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "old_balance",
+   "fieldtype": "Currency",
+   "label": "Old Balance",
+   "options": "currency_link",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_balance",
+   "fieldtype": "Currency",
+   "label": "New Balance",
+   "options": "currency_link",
+   "read_only": 1
+  },
+  {
+   "fieldname": "units",
+   "fieldtype": "Int",
+   "label": "Units"
+  },
+  {
+   "fieldname": "unit_price",
+   "fieldtype": "Currency",
+   "label": "Unit Price",
+   "options": "currency_link"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-08-28 15:21:02.941774",
+ "modified_by": "Administrator",
+ "module": "Journal",
+ "name": "Journal Transaction",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}
