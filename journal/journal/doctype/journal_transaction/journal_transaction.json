@@ -34,7 +34,9 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "non_negative": 1,
    "options": "currency_link",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -108,20 +110,24 @@
   {
    "fieldname": "units",
    "fieldtype": "Int",
-   "label": "Units"
+   "label": "Units",
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "unit_price",
    "fieldtype": "Currency",
    "label": "Unit Price",
-   "options": "currency_link"
+   "non_negative": 1,
+   "options": "currency_link",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-28 15:21:02.941774",
+ "modified": "2025-08-31 10:07:02.520449",
  "modified_by": "Administrator",
  "module": "Journal",
  "name": "Journal Transaction",
