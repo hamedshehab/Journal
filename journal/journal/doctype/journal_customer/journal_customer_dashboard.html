@@ -1,0 +1,115 @@
+{% if transactions.length > 0 %}
+<style>
+    .tx-table {
+        font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    .tx-table th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+        text-align: center;
+        padding: 8px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .tx-table td {
+        padding: 8px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .tx-table tbody tr:nth-child(even) {
+        background-color: #fcfcfc;
+    }
+    .tx-table tbody tr:hover {
+        background-color: #f1f9ff;
+    }
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.85em;
+        min-width: 50px;
+    }
+    .currency-text {
+        font-weight: 600;
+        padding-left: 6px;
+        padding-right: 6px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .currency-yer { color: #F9A825; }
+    .currency-sar { color: #2E7D32; }
+    .currency-usd { color: #1565C0; }
+</style>
+
+<div style="display: flex; gap: 16px; margin-bottom: 20px;">
+    <div style="flex: 1; background: #FFF3E0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 0.85em; color: #666;">{{ __("YER Balance") }}</div>
+        <div style="font-size: 1.4em; font-weight: 600; color: #FB8C00;">{{ balances.yemeni }}</div>
+    </div>
+    <div style="flex: 1; background: #E8F5E9; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 0.85em; color: #666;">{{ __("SAR Balance") }}</div>
+        <div style="font-size: 1.4em; font-weight: 600; color: #2E7D32;">{{ balances.saudi }}</div>
+    </div>
+    <div style="flex: 1; background: #E3F2FD; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 0.85em; color: #666;">{{ __("USD Balance") }}</div>
+        <div style="font-size: 1.4em; font-weight: 600; color: #1565C0;">{{ balances.usd }}</div>
+    </div>
+</div>
+
+
+<table class="tx-table">
+    <thead>
+        <tr>
+            <th>{{ __("Date") }}</th>
+            <th>{{ __("Type") }}</th>
+            <th>{{ __("Units") }}</th>
+            <th>{{ __("Unit Price") }}</th>
+            <th>{{ __("Currency") }}</th>
+            <th>{{ __("Amount") }}</th>
+            <th>{{ __("Old Balance") }}</th>
+            <th>{{ __("New Balance") }}</th>
+            <th>{{ __("Actions") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tx in transactions %}
+        {% 
+            let status_color = tx.docstatus == 1 ? "#4CAF50" : "#FFB74D";
+            let type_bg = tx.type == "Debit" ? "#FFEBEE" : "#E3F2FD";
+            let type_color = tx.type == "Debit" ? "#C62828" : "#1565C0";
+            let currency_class = tx.currency == "YER" ? "currency-yer" : tx.currency == "SAR" ? "currency-sar" : "currency-usd";
+        %}
+        <tr>
+            <td>{{ tx.modified.split(" ")[0] }}</td>
+            <td><span class="badge" style="background: {{ type_bg }}; color: {{ type_color }};">{{ tx.type }}</span></td>
+            <td>{{ tx.units }}</td>
+            <td>{{ tx.unit_price }}</td>
+            <td><span class="currency-text {{ currency_class }}">{{ tx.currency }}</span></td>
+            <td><span class="currency-text {{ currency_class }}">{{ tx.amount }}</span></td>
+            <td>{{ tx.old_balance }}</td>
+            <td>{{ tx.new_balance }}</td>
+            <!-- <td style="color: {{ status_color }}; font-weight: 600;">{{ tx.docstatus == 1 ? __("Submitted") : __("Draft") }}</td> -->
+            <td class="text-center">
+                <button 
+                    class="btn btn-sm btn-outline-secondary" 
+                    style="padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; transition: all 0.2s;"
+                    onclick="window.location.href='/app/journal-transaction/{{ tx.name }}'">
+                    {{ __("View") }}
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align: right; margin-top: 12px;">
+    <button class="btn btn-secondary btn-sm" 
+        onclick="window.location.href='/app/journal-transaction?customer={{ encodeURIComponent(customer) }}'">
+        {{ __("Show More") }}
+    </button>
+</div>
+
+{% endif %}

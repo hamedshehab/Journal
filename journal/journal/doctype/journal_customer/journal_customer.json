@@ -9,10 +9,11 @@
   "customer_name",
   "phone_number",
   "type",
+  "currency",
+  "column_break_ejvy",
   "yemeni_balance",
   "saudi_balance",
-  "usd_balance",
-  "currency"
+  "usd_balance"
  ],
  "fields": [
   {
@@ -70,12 +71,16 @@
    "label": "Currency",
    "options": "Currency",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ejvy",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-28 14:45:01.520005",
+ "modified": "2025-08-31 10:31:25.754169",
  "modified_by": "Administrator",
  "module": "Journal",
  "name": "Journal Customer",
