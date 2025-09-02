@@ -51,21 +51,24 @@ class JournalTransaction(Document):
 			self.datetime = now_datetime()
 
 	def on_submit(self):
-		if self.currency in ["YER", "SAR", "USD"]:
-			customer = frappe.get_doc("Journal Customer", self.customer)
-			amount = self.amount or 0
-			if self.get("type") == "Credit":
-				amount = -amount
-			# Update customer balance
-			if self.currency == "YER":
-				customer.yemeni_balance = (customer.yemeni_balance or 0) + amount
-				self.new_balance = customer.yemeni_balance
-			elif self.currency == "SAR":
-				customer.saudi_balance = (customer.saudi_balance or 0) + amount
-				self.new_balance = customer.saudi_balance
-			elif self.currency == "USD":
-				customer.usd_balance = (customer.usd_balance or 0) + amount
-				self.new_balance = customer.usd_balance
-			customer.save(ignore_permissions=True)
-			# Persist new_balance in the transaction itself
-			self.db_set("new_balance", self.new_balance, update_modified=False)
+		customer = frappe.get_doc("Journal Customer", self.customer)
+		amount = self.amount or 0
+		if self.get("type") == "Credit":
+			amount = -amount
+
+		found = False
+		for row in customer.customer_balances:
+			if row.currency == self.currency:
+				row.balance = (row.balance or 0) + amount
+				self.new_balance = row.balance
+				found = True
+				break
+
+		if not found:
+			new_row = customer.append("customer_balances", {})
+			new_row.currency = self.currency
+			new_row.balance = amount
+			self.new_balance = amount
+
+		customer.save(ignore_permissions=True)
+		self.db_set("new_balance", self.new_balance, update_modified=False)

@@ -3,6 +3,42 @@
 
 frappe.ui.form.on('Journal Customer', {
     refresh(frm) {
+        if (!frm.is_new()) {  // only show button after save
+            frm.add_custom_button(__('Edit Customer'), function() {
+                let d = new frappe.ui.Dialog({
+                    title: 'Edit Customer',
+                    fields: [
+                        {
+                            label: 'Phone Number',
+                            fieldname: 'phone_number',
+                            fieldtype: 'Data',
+                            default: frm.doc.phone_number
+                        },
+                        {
+                            label: 'Type',
+                            fieldname: 'type',
+                            fieldtype: 'Link',
+                            options: 'Journal Customer Type',
+                            default: frm.doc.type
+                        }
+                    ],
+                    primary_action_label: 'Save',
+                    primary_action(values) {
+                        // Update the document fields
+                        frm.set_value('phone_number', values.phone_number);
+                        frm.set_value('type', values.type);
+
+                        // Save the document
+                        frm.save();
+
+                        d.hide();
+                    }
+                });
+
+                d.show();
+            });
+        }
+        
         // Add button to create new transaction
         frm.add_custom_button(__('New Transaction'), function() {
             let d = new frappe.ui.Dialog({
@@ -69,13 +105,13 @@ frappe.ui.form.on('Journal Customer', {
         });
 
         // Render dashboard on refresh
-        make_dashboard(frm);
+        if(!frm.doc.__islocal){
+            make_dashboard(frm);
+        }
     }
 });
 
 function make_dashboard(frm) {
-    if (!frm.doc.name) return;
-
     $("div").remove(".form-dashboard-section.custom");
 
     frappe.call({
@@ -89,14 +125,12 @@ function make_dashboard(frm) {
         },
         callback: function(r) {
             let transactions = r.message || [];
-
+            if (transactions.length === 0) {
+                return;
+            }
             let html = frappe.render_template("journal_customer_dashboard", { 
                 transactions: transactions,
-                balances: {
-                    yemeni: frm.doc.yemeni_balance,
-                    saudi: frm.doc.saudi_balance,
-                    usd: frm.doc.usd_balance
-                },
+                balances: frm.doc.customer_balances || [],
                 customer: frm.doc.name
             });
 
