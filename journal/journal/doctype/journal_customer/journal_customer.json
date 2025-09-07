@@ -6,11 +6,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_wagv",
   "customer_name",
   "phone_number",
   "type",
   "currency",
   "customer_balances",
+  "balances",
   "column_break_ejvy",
   "yemeni_balance",
   "saudi_balance",
@@ -46,7 +48,7 @@
   {
    "fieldname": "yemeni_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Yemeni Balance",
    "options": "YER",
    "read_only": 1
@@ -54,7 +56,7 @@
   {
    "fieldname": "saudi_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Saudi Balance",
    "options": "SAR",
    "read_only": 1
@@ -62,7 +64,7 @@
   {
    "fieldname": "usd_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "USD Balance",
    "options": "currency",
    "read_only": 1
@@ -83,15 +85,27 @@
   {
    "fieldname": "customer_balances",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Customer Balances",
    "options": "Journal Customer Balance"
+  },
+  {
+   "fieldname": "section_break_wagv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "balances",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Balances"
   }
  ],
  "grid_page_length": 50,
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 14:43:39.257282",
+ "modified": "2025-09-06 17:02:55.302675",
  "modified_by": "Administrator",
  "module": "Journal",
  "name": "Journal Customer",

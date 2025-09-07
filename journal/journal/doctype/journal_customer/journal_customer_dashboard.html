@@ -47,11 +47,14 @@
 
 <div style="display: flex; gap: 16px; margin-bottom: 20px;">
     {% let balances_count = 0 %}
+    {% let total_amount %}
     {% for bal in balances %}
         {% let bg_color = bal.background_color || "#f5f5f5"; let text_color = bal.text_color %}
         <div style="flex: 1; background: {{ bg_color }}; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <div style="font-size: 0.85em; color: {{ text_color }};">{{ __(bal.currency + " Balance") }}</div>
-            <div style="font-size: 1.4em; font-weight: 600; color: {{ text_color }};">{{ bal.balance }}</div>
+            <div style="font-size: 1.4em; font-weight: 600; color: {{ text_color }};">
+                {{ bal.balance && bal.balance.toLocaleString ? bal.balance.toLocaleString() : bal.balance }}
+            </div>
         </div>
         {% balances_count += 1 %}
     {% endfor %}
@@ -69,8 +72,7 @@
             <th>{{ __("Currency") }}</th>
             {% endif %}
             <th>{{ __("Amount") }}</th>
-            <th>{{ __("Old Balance") }}</th>
-            <th>{{ __("New Balance") }}</th>
+            <th>{{ __("Balance") }}</th>
             <th>{{ __("Actions") }}</th>
         </tr>
     </thead>
@@ -85,15 +87,26 @@
             let text_color = (balances.find(b => b.currency == tx.currency) || {}).text_color || "#000"
         %}
         <tr class="{{ row_class }}">
-            <td>{{ tx.modified.split(" ")[0] }}</td>
+            <td>{{ tx.datetime && tx.datetime.split(" ")[0] }}</td>
             <td><span class="badge" style="background: {{ type_bg }}; color: {{ type_color }};">{{ tx.type }}</span></td>
             <td>{{ tx.units }}</td>
             <td>{{ tx.unit_price }}</td>
             {% if balances_count > 1 %}
             <td><span class="currency-text" style="color: {{ text_color }}">{{ tx.currency }}</span></td>
             {% endif %}
-            <td><span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span></td>
-            <td>{{ tx.old_balance }}</td>
+            <td>
+                {%
+                    total_amount = total_amount || {};
+                    let curr = tx.currency;
+                    total_amount[curr] = total_amount[curr] || 0;
+                    if (tx.type == "Debit") {
+                        total_amount[curr] -= tx.amount || 0;
+                    } else {
+                        total_amount[curr] += tx.amount || 0;
+                    }
+                %}
+                <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+            </td>
             <td>
                 {% if tx.docstatus == 1 %}
                     {{ tx.new_balance }}
@@ -115,11 +128,30 @@
     </tbody>
 </table>
 
-<div style="text-align: right; margin-top: 12px;">
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 24px; margin-top: 12px;">
+    <div style="margin-top: 12px; font-weight: 600;">
+    {{ __("Total Amount") }}:
+    {% if (total_amount && Object.keys(total_amount).length > 0) { %}
+        {% Object.keys(total_amount).forEach(function(curr) { %}
+            <span style="margin-left: 12px;">
+                {{ curr }}: {{ total_amount[curr] }}
+            </span>
+        {% }) %}
+    {% } else { %}
+        <span style="margin-left: 12px; color: #888;">
+            {{ __("No totals yet") }}
+        </span>
+    {% } %}
+</div>
+
     <button class="btn btn-secondary btn-sm" 
         onclick="window.location.href='/app/journal-transaction?customer={{ encodeURIComponent(customer) }}'">
         {{ __("Show More") }}
     </button>
 </div>
 
+{% else %}
+<div style="text-align: center; margin: 40px 0; color: #888; font-size: 1.1em;">
+    {{ __("There are no transactions to display.") }}
+</div>
 {% endif %}

@@ -53,7 +53,7 @@ class JournalTransaction(Document):
 	def on_submit(self):
 		customer = frappe.get_doc("Journal Customer", self.customer)
 		amount = self.amount or 0
-		if self.get("type") == "Credit":
+		if self.get("type") == "Debit":
 			amount = -amount
 
 		found = False
@@ -70,5 +70,28 @@ class JournalTransaction(Document):
 			new_row.balance = amount
 			self.new_balance = amount
 
+		# Update balances field with all balances in the required format
+		customer.balances = " | ".join(
+			f"{row.currency}: {row.balance}" for row in customer.customer_balances if row.balance is not None
+		)
+
 		customer.save(ignore_permissions=True)
 		self.db_set("new_balance", self.new_balance, update_modified=False)
+		
+	def on_cancel(self):
+		customer = frappe.get_doc("Journal Customer", self.customer)
+		amount = self.amount or 0
+		if self.get("type") == "Debit":
+			amount = -amount
+
+		for row in customer.customer_balances:
+			if row.currency == self.currency:
+				row.balance = (row.balance or 0) - amount
+				break
+
+		# Update balances field with all balances in the required format
+		customer.balances = " | ".join(
+			f"{row.currency}: {row.balance}" for row in customer.customer_balances if row.balance is not None
+		)
+
+		customer.save(ignore_permissions=True)

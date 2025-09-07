@@ -1,0 +1,17 @@
+<h2>Transactions for {{ customer }}</h2>
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+    <tr>
+        <th>Transaction</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Amount</th>
+    </tr>
+    {% for tx in transactions %}
+    <tr>
+        <td>{{ tx.name }}</td>
+        <td>{{ tx.datetime }}</td>
+        <td>{{ tx.type }}</td>
+        <td>{{ tx.amount }}</td>
+    </tr>
+    {% endfor %}
+</table>
