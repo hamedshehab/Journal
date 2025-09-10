@@ -64,48 +64,53 @@
 <table class="tx-table">
     <thead>
         <tr>
-          </div>  <th>{{ __("Date") }}</th>
-            <th>{{ __("Type") }}</th>
+            <th>{{ __("Date") }}</th>
             <th>{{ __("Units") }}</th>
             <th>{{ __("Unit Price") }}</th>
             {% if balances_count > 1 %}
             <th>{{ __("Currency") }}</th>
             {% endif %}
-            <th>{{ __("Amount") }}</th>
+            <th>{{ __("Debit") }}</th>
+            <th>{{ __("Credit") }}</th>
             <th>{{ __("Balance") }}</th>
             <th>{{ __("Actions") }}</th>
         </tr>
     </thead>
     <tbody>
         {% for tx in transactions %}
-        {% 
-            let status_color = tx.docstatus == 1 ? "#4CAF50" : "#FFB74D";
-            let type_bg = tx.type == "Debit" ? "#FFEBEE" : "#E3F2FD";
-            let type_color = tx.type == "Debit" ? "#C62828" : "#1565C0";
+        {%
             let currency_class = tx.currency == "YER" ? "currency-yer" : tx.currency == "SAR" ? "currency-sar" : "currency-usd";
             let row_class = tx.docstatus == 1 ? "" : "row-draft";
-            let text_color = (balances.find(b => b.currency == tx.currency) || {}).text_color || "#000"
+            let text_color = (balances.find(b => b.currency == tx.currency) || {}).text_color || "#000";
+            total_amount = total_amount || {};
+            let curr = tx.currency;
+            total_amount[curr] = total_amount[curr] || 0;
+            if (tx.type == "Debit") {
+                total_amount[curr] -= tx.amount || 0;
+            } else {
+                total_amount[curr] += tx.amount || 0;
+            }
         %}
         <tr class="{{ row_class }}">
             <td>{{ tx.datetime && tx.datetime.split(" ")[0] }}</td>
-            <td><span class="badge" style="background: {{ type_bg }}; color: {{ type_color }};">{{ tx.type }}</span></td>
             <td>{{ tx.units }}</td>
             <td>{{ tx.unit_price }}</td>
             {% if balances_count > 1 %}
             <td><span class="currency-text" style="color: {{ text_color }}">{{ tx.currency }}</span></td>
             {% endif %}
             <td>
-                {%
-                    total_amount = total_amount || {};
-                    let curr = tx.currency;
-                    total_amount[curr] = total_amount[curr] || 0;
-                    if (tx.type == "Debit") {
-                        total_amount[curr] -= tx.amount || 0;
-                    } else {
-                        total_amount[curr] += tx.amount || 0;
-                    }
-                %}
-                <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+                {% if tx.type == "Debit" %}
+                    <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                {% if tx.type == "Credit" %}
+                    <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+                {% else %}
+                    -
+                {% endif %}
             </td>
             <td>
                 {% if tx.docstatus == 1 %}
@@ -114,7 +119,6 @@
                     <span style="color: #C62828; font-weight: 600;">Draft</span>
                 {% endif %}
             </td>
-            <!-- <td style="color: {{ status_color }}; font-weight: 600;">{{ tx.docstatus == 1 ? __("Submitted") : __("Draft") }}</td> -->
             <td class="text-center">
                 <button 
                     class="btn btn-sm btn-outline-secondary" 

@@ -46,3 +46,115 @@ def download_transactions_pdf():
 	frappe.local.response.filename = f"Transactions_{customer}.pdf"
 	frappe.local.response.filecontent = pdf_data
 	frappe.local.response.type = "download"
+
+
+
+import frappe
+from frappe import _
+
+
+@frappe.whitelist()
+def get_grouped_journal_transactions(journal_customer, from_date=None, to_date=None, tx_type=None, currency=None):
+    """
+    Returns journal transactions for a journal customer,
+    grouped by currency with totals, sorted by datetime descending.
+    Also fetches balances from the child table in Journal Customer.
+    """
+    # Build filters for Journal Transaction
+    filters = {"customer": journal_customer, "docstatus": ["!=", 2]}  # 'customer' field links to Journal Customer doctype
+
+    if from_date and to_date:
+        filters["datetime"] = ["between", [from_date, to_date]]
+    elif from_date:
+        filters["datetime"] = [">=", from_date]
+    elif to_date:
+        filters["datetime"] = ["<=", to_date]
+
+    if tx_type:
+        filters["type"] = tx_type
+    if currency:
+        filters["currency"] = currency
+
+    # Fetch transactions
+    transactions = frappe.get_all(
+        "Journal Transaction",
+        filters=filters,
+        fields=[
+            "name",
+            "units",
+            "unit_price",
+            "currency",
+            "type",
+            "amount",
+            "old_balance",
+            "new_balance",
+            "docstatus",
+            "modified",
+            "datetime"
+        ],
+        order_by="datetime desc"
+    )
+
+    # Group transactions by currency and compute totals
+    grouped = {}
+    for tx in transactions:
+        curr = tx["currency"]
+
+        if curr not in grouped:
+            grouped[curr] = {
+                "currency": curr,
+                "transactions": [],
+                "totals": {"debit": 0, "credit": 0, "balance": 0}
+            }
+
+        # Add transaction
+        grouped[curr]["transactions"].append(tx)
+
+        # Update totals
+        if tx["docstatus"] == 1:
+            if tx["type"] == "Debit":
+                grouped[curr]["totals"]["debit"] += tx.get("amount") or 0
+                grouped[curr]["totals"]["balance"] -= tx.get("amount") or 0
+            else:  # Credit
+                grouped[curr]["totals"]["credit"] += tx.get("amount") or 0
+                grouped[curr]["totals"]["balance"] += tx.get("amount") or 0
+
+    # Convert dict to list (preserves insertion order in Python 3.7+)
+    result = list(grouped.values())
+
+    # Fetch balances from the child table of Journal Customer
+    journal_customer_doc = frappe.get_doc("Journal Customer", journal_customer)
+    balances = getattr(journal_customer_doc, "customer_balances", [])
+
+    return {"groups": result, "balances": balances}
+
+
+@frappe.whitelist()
+def get_recent_transactions(journal_customer, limit=20):
+    """
+    Optional helper: fetch recent transactions for a journal customer (without grouping).
+    """
+    transactions = frappe.get_all(
+        "Journal Transaction",
+        filters={"customer": journal_customer},
+        fields=[
+            "name",
+            "units",
+            "unit_price",
+            "currency",
+            "type",
+            "amount",
+            "old_balance",
+            "new_balance",
+            "docstatus",
+            "modified",
+            "datetime"
+        ],
+        order_by="datetime desc",
+        limit_page_length=limit
+    )
+
+    journal_customer_doc = frappe.get_doc("Journal Customer", journal_customer)
+    balances = getattr(journal_customer_doc, "customer_balances", [])
+
+    return {"transactions": transactions, "balances": balances}

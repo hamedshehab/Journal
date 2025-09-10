@@ -1,0 +1,149 @@
+{% if groups.length > 0 %}
+
+<style>
+    .tx-table {
+        font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    .tx-table th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+        text-align: center;
+        padding: 8px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .tx-table td {
+        padding: 8px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .tx-table tbody tr:nth-child(even) {
+        background-color: #fcfcfc;
+    }
+    .tx-table tbody tr:hover {
+        background-color: #f1f9ff;
+    }
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.85em;
+        min-width: 50px;
+    }
+    .currency-text {
+        font-weight: 600;
+        padding-left: 6px;
+        padding-right: 6px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .currency-yer { color: #F9A825; }
+    .currency-sar { color: #2E7D32; }
+    .currency-usd { color: #1565C0; }
+    .row-draft { background-color: #FFF8E1 !important; }
+    .currency-header {
+        background: #e8f0fe;
+        font-weight: 700;
+        text-align: left;
+        padding: 10px;
+        font-size: 1rem;
+    }
+    .totals-row {
+        background: #f5f5f5;
+        font-weight: 600;
+    }
+</style>
+
+<!-- Customer Balances -->
+<div style="display: flex; gap: 16px; margin-bottom: 20px;">
+    {% let balances_count = 0 %}
+    {% let total_amount %}
+    {% for bal in balances %}
+        {% let bg_color = bal.background_color || "#f5f5f5"; let text_color = bal.text_color %}
+        <div style="flex: 1; background: {{ bg_color }}; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="font-size: 0.85em; color: {{ text_color }};">{{ __(bal.currency + " Balance") }}</div>
+            <div style="font-size: 1.4em; font-weight: 600; color: {{ text_color }};">
+                {{ bal.balance && bal.balance.toLocaleString ? bal.balance.toLocaleString() : bal.balance }}
+            </div>
+        </div>
+        {% balances_count += 1 %}
+    {% endfor %}
+</div>  
+
+<!-- Transactions Table -->
+<table class="tx-table">
+    <thead>
+        <tr>
+            <th>{{ __("Date") }}</th>
+            <th>{{ __("Units") }}</th>
+            <th>{{ __("Unit Price") }}</th>
+            <th>{{ __("Debit") }}</th>
+            <th>{{ __("Credit") }}</th>
+            <th>{{ __("Balance") }}</th>
+            <th>{{ __("Actions") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for group in groups %}
+            <!-- Currency Header -->
+            <tr>
+                <td colspan="{{ 7 }}" class="currency-header">{{ group.currency }}</td>
+            </tr>
+
+            {% for tx in group.transactions %}
+                {%
+                    let row_class = tx.docstatus == 1 ? "" : "row-draft";
+                    let text_color = (balances.find(b => b.currency == tx.currency) || {}).text_color || "#000";
+                %}
+                <tr class="{{ row_class }}">
+                    <td>{{ tx.datetime && tx.datetime.split(" ")[0] }}</td>
+                    <td>{{ tx.units }}</td>
+                    <td>{{ tx.unit_price }}</td>
+                    <td>
+                        {% if tx.type == "Debit" %}
+                            <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if tx.type == "Credit" %}
+                            <span class="currency-text" style="color: {{ text_color }}">{{ tx.amount }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if tx.docstatus == 1 %}
+                            {{ tx.new_balance }}
+                        {% else %}
+                            <span style="color: #C62828; font-weight: 600;">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <button 
+                            class="btn btn-sm btn-outline-secondary" 
+                            style="padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; transition: all 0.2s;"
+                            onclick="window.location.href='/app/journal-transaction/{{ tx.name }}'">
+                            {{ __("View") }}
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            <!-- Totals Row -->
+            <tr class="totals-row">
+                <td colspan="{{ 3 }}">{{ __("Totals") }}</td>
+                <td>{{ group.totals.debit }}</td>
+                <td>{{ group.totals.credit }}</td>
+                <td>{{ group.totals.balance }}</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<div style="text-align: center; margin: 40px 0; color: #888; font-size: 1.1em;">
+    {{ __("There are no transactions to display.") }}
+</div>
+{% endif %}
