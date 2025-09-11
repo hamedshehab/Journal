@@ -1,15 +1,75 @@
-<h2>Transactions for {{ customer }}</h2>
-<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        color: #222;
+    }
+    .transactions-title {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #2c3e50;
+    }
+    .filters-section {
+        margin-bottom: 18px;
+        padding: 10px 16px;
+        background: #f4f6fa;
+        border-radius: 6px;
+        font-size: 15px;
+        color: #34495e;
+        width: fit-content;
+    }
+    .filters-section strong {
+        margin-right: 8px;
+    }
+    .transactions-table {
+        border-collapse: collapse;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+    }
+    .transactions-table th, .transactions-table td {
+        padding: 12px 10px;
+        text-align: left;
+    }
+    .transactions-table th {
+        background: #2c3e50;
+        color: #fff;
+        font-weight: 600;
+        border-bottom: 2px solid #34495e;
+    }
+    .transactions-table tr:nth-child(even) {
+        background: #f6f8fa;
+    }
+    .transactions-table tr:hover {
+        background: #eaf1fb;
+    }
+    .transactions-table td {
+        border-bottom: 1px solid #e1e4e8;
+    }
+</style>
+
+<h2 class="transactions-title">Transactions for {{ customer }}</h2>
+
+<div class="filters-section">
+    {% if filters %}
+        {% for key, value in filters.items() %}
+            <strong>{{ key|capitalize }}:</strong> {{ value }}&nbsp;&nbsp;
+        {% endfor %}
+    {% else %}
+        <em>No filters applied</em>
+    {% endif %}
+</div>
+
+<table class="transactions-table">
     <tr>
-        <th>Transaction</th>
+        <th>Title</th>
         <th>Date</th>
         <th>Type</th>
         <th>Amount</th>
     </tr>
     {% for tx in transactions %}
     <tr>
-        <td>{{ tx.name }}</td>
-        <td>{{ tx.datetime }}</td>
+        <td>{{ tx.title }}</td>
+        <td>{{ tx.datetime.strftime('%Y-%m-%d') }}</td>
         <td>{{ tx.type }}</td>
         <td>{{ tx.amount }}</td>
     </tr>

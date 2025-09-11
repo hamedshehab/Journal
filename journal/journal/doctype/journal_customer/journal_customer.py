@@ -28,16 +28,23 @@ def download_transactions_pdf():
 	transactions = frappe.get_list(
 		"Journal Transaction",
 		filters=filters,
-		fields=["name", "datetime", "amount", "type"]
+		fields=["name","title", "datetime", "amount", "type"]
 	)
 
 	if not transactions:
 		frappe.throw(_("No transactions found for this customer."))
 
+	# Prepare filters for template (exclude 'customer')
+	template_filters = {k: v for k, v in filters.items() if k != "customer"}
+
 	# Render HTML template
 	html = frappe.render_template(
-		"journal/templates/includes/transactions_pdf.html",
-		{"customer": customer, "transactions": transactions}
+    	"journal/templates/includes/transactions_pdf.html",
+    	{
+        	"customer": customer,
+        	"transactions": transactions,
+        	"filters": template_filters
+    	}
 	)
 
 	# Convert to PDF
