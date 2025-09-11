@@ -122,8 +122,8 @@ frappe.ui.form.on("Journal Customer", {
 					{
 						fieldname: "currency",
 						label: "Currency",
-						fieldtype: "Select",
-						options: ["YER", "SAR", "USD"],
+						fieldtype: "Link",
+						options: "Currency",
 						default: window.last_currency || "YER",
 						reqd: 1,
 					},
@@ -132,6 +132,14 @@ frappe.ui.form.on("Journal Customer", {
 						label: "Type",
 						fieldtype: "Select",
 						options: ["Debit", "Credit"],
+						reqd: 1,
+					},
+					{
+						fieldname: "purpose",
+						label: "Purpose",
+						fieldtype: "Link",
+						options: "Journal Transaction Purpose",
+						default: "عام",
 						reqd: 1,
 					},
 					{ fieldname: "datetime", label: "Date & Time", fieldtype: "Datetime" },
@@ -158,13 +166,14 @@ frappe.ui.form.on("Journal Customer", {
 			});
 
 			function create_transaction(values, docstatus) {
-				const balance_field_map = {
-					YER: "yemeni_balance",
-					SAR: "saudi_balance",
-					USD: "usd_balance",
-				};
-				let balance_fieldname = balance_field_map[values.currency];
-				let old_balance = frm.doc[balance_fieldname];
+				let old_balance = 0;
+				if (frm.doc.customer_balances && Array.isArray(frm.doc.customer_balances)) {
+					const bal = frm.doc.customer_balances.find(
+						(b) => b.currency === values.currency
+					);
+					old_balance = bal ? bal.balance : 0;
+					console.log("Found balance:", old_balance);
+				}
 
 				frappe.call({
 					method: "frappe.client.insert",
@@ -176,6 +185,7 @@ frappe.ui.form.on("Journal Customer", {
 							unit_price: values.unit_price,
 							currency: values.currency,
 							type: values.type,
+							purpose: values.purpose,
 							details: values.details,
 							amount: values.units * values.unit_price,
 							old_balance: old_balance,
@@ -225,12 +235,18 @@ function make_dashboard(frm, filters = {}) {
 				let data = r.message || {};
 				let groups = data.groups || [];
 				let balances = data.balances || [];
+				let filters = data.filters || {};
+				let recent_transactions = data.recent_transactions || [];
+				let journal_customer = frm.doc.name;
 
 				// Render the dashboard using your replica microtemplate
 				let html = frappe.render_template("journal_customer_dashboard2", {
 					groups: groups,
 					balances: balances,
 					customer: frm.doc.name,
+					filters: filters,
+					recent_transactions: recent_transactions,
+					journal_customer: journal_customer
 				});
 
 				// Dynamically inject after the last form section
@@ -251,115 +267,63 @@ function make_dashboard(frm, filters = {}) {
 }
 
 function render_journal_customer_filters(frm) {
-	// Store last used filter values in a global variable
 	window.journal_customer_last_filters = window.journal_customer_last_filters || {};
-
-	// Remove any previous filter section to avoid duplicates
 	frm.$wrapper.find(".form-section.custom-filters-section").remove();
 
-	// Add custom CSS for the clear (X) button and section layout
+	// Add CSS once
 	if (!document.getElementById("journal-customer-clear-filters-style")) {
 		const style = document.createElement("style");
 		style.id = "journal-customer-clear-filters-style";
 		style.innerHTML = `
-			.form-section.custom-filters-section {
-				margin-bottom: 16px;
-				padding: 12px 18px;
-				border-radius: 6px;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 16px;
-			}
-			.journal-customer-filters-left,
-			.journal-customer-filters-right {
-				display: flex;
-				align-items: center;
-				gap: 12px;
-			}
-			.journal-customer-clear-filters-btn {
-				font-weight: normal !important;
-				opacity: 0.7;
-				transition: background 0.15s, color 0.15s, opacity 0.15s;
-				border-radius: 50%;
-				padding: 2px 5px;
-				margin-left: 6px;
-				cursor: pointer;
-				display: flex;
-				align-items: center;
-			}
-			.journal-customer-clear-filters-btn:hover {
-				background: #f0f0f0;
-				color: #d9534f;
-				opacity: 1;
-			}
-			.journal-customer-clear-filters-btn i {
-				font-weight: normal !important;
-				font-size: 13px;
-			}
+			.form-section.custom-filters-section {margin-bottom:16px;padding:12px 18px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+			.journal-customer-filters-left,.journal-customer-filters-right {display:flex;align-items:center;gap:12px;}
+			.journal-customer-clear-filters-btn {font-weight:normal !important;opacity:0.7;transition:background 0.15s,color 0.15s,opacity 0.15s;border-radius:50%;padding:2px 5px;margin-left:6px;cursor:pointer;display:flex;align-items:center;}
+			.journal-customer-clear-filters-btn:hover {background:#f0f0f0;color:#d9534f;opacity:1;}
+			.journal-customer-clear-filters-btn i {font-weight:normal !important;font-size:13px;}
 		`;
 		document.head.appendChild(style);
 	}
 
-	// Create a new section for the filter and PDF buttons, spaced across the section
 	const $filterSection = $(`
 		<div class="form-section custom-filters-section">
 			<div class="journal-customer-filters-left">
-				<button class="btn btn-default filter-transactions-btn" style="display: flex; align-items: center; position: relative;">
-					<i class="fa fa-filter" style="margin-right: 6px;"></i>
+				<h3>${frm.doc.phone_number || __("N/A")}</h3>
+				<h3>${frm.doc.type}</h3>
+			</div>
+			<div class="journal-customer-filters-right">
+				<button class="btn btn-default filter-transactions-btn" style="display:flex;align-items:center;">
+					<i class="fa fa-filter" style="margin-right:6px;"></i>
 					${__("Filters")}
 					<span class="journal-customer-clear-filters-btn" title="${__("Clear Filters")}">
 						<i class="fa fa-times"></i>
 					</span>
 				</button>
-			</div>
-			<div class="journal-customer-filters-right">
-				<button class="btn btn-primary download-pdf-btn">
-					${__("Download PDF")}
-				</button>
+				<button class="btn btn-primary download-pdf-btn">${__("Download PDF")}</button>
 			</div>
 		</div>
 	`);
-	// Inject after the last form section
 	let $form_sections = frm.$wrapper.find(".form-section");
-	if ($form_sections.length) {
-		$form_sections.last().after($filterSection);
-	} else {
-		frm.$wrapper.prepend($filterSection);
-	}
+	if ($form_sections.length) $form_sections.last().after($filterSection);
+	else frm.$wrapper.prepend($filterSection);
 
 	$filterSection.find(".filter-transactions-btn").on("click", function (e) {
-		// Prevent click if X was clicked
 		if ($(e.target).closest(".journal-customer-clear-filters-btn").length) return;
+		let last = window.journal_customer_last_filters;
 
-		let last_filters = window.journal_customer_last_filters;
-
-		// Helper to get date ranges
 		function get_date_range(option) {
-			const today = frappe.datetime.get_today();
 			const now = frappe.datetime.now_date();
-			let from_date = "",
-				to_date = "";
-			const date_obj = frappe.datetime.str_to_obj;
-
-			if (option === "this_month") {
-				const d = date_obj(now);
-				from_date = frappe.datetime.obj_to_str(
-					new Date(d.getFullYear(), d.getMonth(), 1)
-				);
-				to_date = frappe.datetime.obj_to_str(
-					new Date(d.getFullYear(), d.getMonth() + 1, 0)
-				);
-			} else if (option === "last_month") {
-				const d = date_obj(now);
-				from_date = frappe.datetime.obj_to_str(
-					new Date(d.getFullYear(), d.getMonth() - 1, 1)
-				);
-				to_date = frappe.datetime.obj_to_str(
-					new Date(d.getFullYear(), d.getMonth(), 0)
-				);
-			}
-			return { from_date, to_date };
+			const d = frappe.datetime.str_to_obj(now);
+			if (option === "this_month")
+				return {
+					from_date: frappe.datetime.obj_to_str(new Date(d.getFullYear(), d.getMonth(), 1)),
+					to_date: frappe.datetime.obj_to_str(new Date(d.getFullYear(), d.getMonth() + 1, 0))
+				};
+			if (option === "last_month")
+				return {
+					from_date: frappe.datetime.obj_to_str(new Date(d.getFullYear(), d.getMonth() - 1, 1)),
+					to_date: frappe.datetime.obj_to_str(new Date(d.getFullYear(), d.getMonth(), 0))
+				};
+			return { from_date: "", to_date: "" };
 		}
 
 		let d = new frappe.ui.Dialog({
@@ -372,7 +336,7 @@ function render_journal_customer_filters(frm) {
 					options: [
 						"",
 						{ label: "This Month", value: "this_month" },
-						{ label: "Last Month", value: "last_month" },
+						{ label: "Last Month", value: "last_month" }
 					],
 					onchange: function () {
 						const val = d.get_value("quick_date");
@@ -381,60 +345,29 @@ function render_journal_customer_filters(frm) {
 							d.set_value("from_date", range.from_date);
 							d.set_value("to_date", range.to_date);
 						}
-					},
+					}
 				},
-				{
-					label: "From Date",
-					fieldname: "from_date",
-					fieldtype: "Date",
-					default: last_filters.from_date || "",
-				},
-				{
-					label: "To Date",
-					fieldname: "to_date",
-					fieldtype: "Date",
-					default: last_filters.to_date || "",
-				},
-				{
-					label: "Transaction Type",
-					fieldname: "type",
-					fieldtype: "Select",
-					options: ["", "Debit", "Credit"],
-					default: last_filters.type || "",
-				},
-				{
-					label: "Currency",
-					fieldname: "currency",
-					fieldtype: "Link",
-					options: "Currency",
-					default: last_filters.currency || "",
-				},
+				{ label: "From Date", fieldname: "from_date", fieldtype: "Date", default: last.from_date || "" },
+				{ label: "To Date", fieldname: "to_date", fieldtype: "Date", default: last.to_date || "" },
+				{ label: "Transaction Type", fieldname: "type", fieldtype: "Select", options: ["", "Debit", "Credit"], default: last.type || "" },
+				{ label: "Currency", fieldname: "currency", fieldtype: "Link", options: "Currency", default: last.currency || "" }
 			],
 			primary_action_label: __("Apply"),
 			primary_action(values) {
-				// Save filter values globally (ignore quick_date)
 				let { quick_date, ...filters } = values;
-				window.journal_customer_last_filters = Object.assign({}, filters);
+				window.journal_customer_last_filters = { ...filters };
 				make_dashboard(frm, filters);
-				d.hide(); // Close the dialog after applying filters
-			},
+				d.hide();
+			}
 		});
 
-		// Set Clear Filters as secondary action
 		d.set_secondary_action_label(__("Clear Filters"));
 		d.set_secondary_action(() => {
-			d.set_values({
-				quick_date: "",
-				from_date: "",
-				to_date: "",
-				type: "",
-				currency: "",
-			});
+			d.set_values({ quick_date: "", from_date: "", to_date: "", type: "", currency: "" });
 			window.journal_customer_last_filters = {};
 			make_dashboard(frm, {});
 			d.hide();
 		});
-
 		d.show();
 	});
 
@@ -445,8 +378,21 @@ function render_journal_customer_filters(frm) {
 	});
 
 	$filterSection.find(".download-pdf-btn").on("click", function () {
+		let filters = window.journal_customer_last_filters || {};
+		let params = {
+			customer: frm.doc.name,
+			from_date: filters.from_date,
+			to_date: filters.to_date,
+			type: filters.type,
+			currency: filters.currency,
+		};
+		// Remove empty params
+		Object.keys(params).forEach((key) => {
+			if (!params[key]) delete params[key];
+		});
+		let query = $.param(params);
 		let url = frappe.urllib.get_full_url(
-			`/api/method/journal.journal.doctype.journal_customer.journal_customer.download_transactions_pdf?customer=${frm.doc.name}`
+			`/api/method/journal.journal.doctype.journal_customer.journal_customer.download_transactions_pdf?${query}`
 		);
 		window.open(url);
 	});
@@ -514,3 +460,142 @@ function render_journal_customer_filters(frm) {
 	//     }
 	// });
 // }
+window.openDialog = function(transaction_name) {
+	frappe.call({
+		method: "frappe.client.get",
+		args: { doctype: "Journal Transaction", name: transaction_name },
+		callback: function(r) {
+			const t = r.message;
+			if (!t) return frappe.msgprint(__("Transaction not found"));
+
+			const exclude = [
+				"doctype", "idx", "owner", "modified_by", "creation", "modified",
+				"name", "docstatus", "title", "amended_from", "currency", "customer", "details"
+			];
+
+			const other = Object.entries(t)
+				.filter(([k]) => !exclude.includes(k) && !["amount", "type", "datetime"].includes(k));
+
+			const color = t.type === "Credit" ? "#28a745" : t.type === "Debit" ? "#d9534f" : "#333";
+			const amount_html = `<div style="font-size:1.5em;font-weight:600;color:${color};margin-bottom:6px;text-align:left;direction:ltr;">
+				${frappe.format(t.amount, {fieldtype:"Currency", options: t.currency})}
+			</div>`;
+
+			let datetime_html = "";
+			if (t.datetime) {
+				const dt = frappe.datetime.str_to_obj(t.datetime);
+				datetime_html = `<div style="margin-bottom:12px;color:#555;text-align:left;">
+					<i class="fa fa-calendar"></i>
+					<span style="font-weight:500;">${frappe.datetime.obj_to_user(dt, "date")}</span>
+					<span style="margin:0 8px;">|</span>
+					<i class="fa fa-clock-o"></i>
+					<span style="font-weight:500;">${dt ? dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</span>
+				</div>`;
+			}
+
+			const html = `<div style="display:flex;flex-direction:column;align-items:flex-start;">
+				${amount_html}
+				${datetime_html}
+				<hr style="width:100%;border:0;border-top:1px solid #eee;margin:12px 0;">
+				${other.map(([k, v]) => `
+					<div style="margin-bottom:6px;">
+						<strong>${frappe.model.unscrub(k).replace(/\b\w/g, l => l.toUpperCase())}:</strong>
+						<span>${frappe.format(v, {fieldtype:"Data"}) || ""}</span>
+					</div>
+				`).join("")}
+				${t.details ? `
+					<div style="margin-top:10px;">
+						<strong>${frappe.model.unscrub("details").replace(/\b\w/g, l => l.toUpperCase())}:</strong>
+						<div style="white-space:pre-wrap;">${frappe.format(t.details, {fieldtype:"Small Text"}) || ""}</div>
+					</div>
+				` : ""}
+			</div>`;
+
+			const d = new frappe.ui.Dialog({
+				title: t.title || t.name || __("Transaction Details"),
+				fields: [{ fieldtype: "HTML", options: html }],
+				primary_action_label: __("Close"),
+				primary_action: () => d.hide()
+			});
+			d.show();
+		}
+	});
+};
+
+window.showRecentTransactions = function (journal_customer) {
+	frappe.call({
+		method: "frappe.client.get_list",
+		args: {
+			doctype: "Journal Transaction",
+			filters: {
+				customer: journal_customer
+			},
+			fields: ["name", "datetime", "type", "amount", "currency", "new_balance", "details"],
+			order_by: "datetime desc",
+			limit_page_length: 5
+		},
+		callback: function (r) {
+			const txs = r.message || [];
+			if (!txs.length) return frappe.msgprint(__("No recent transactions found."));
+
+			// Build cards
+			const cards_html = txs.map((t) => {
+				const color =
+					t.type === "Credit"
+						? "#28a745"
+						: t.type === "Debit"
+						? "#d9534f"
+						: "#333";
+
+				// Date & Amount (side by side, LTR)
+				let date_html = "";
+				let time_html = "";
+				if (t.datetime) {
+					const dt = frappe.datetime.str_to_obj(t.datetime);
+					date_html = `<span style="font-weight:500;">${frappe.datetime.obj_to_user(dt, "date")}</span>`;
+					time_html = `<span style="font-weight:500;">${dt ? dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</span>`;
+				}
+
+				const amount_html = `<span style="font-size:1.3em;font-weight:600;color:${color};margin-left:16px;white-space:nowrap;">
+					${frappe.format(t.amount, { fieldtype: "Currency", options: t.currency })}
+				</span>`;
+
+				const datetime_amount_row = `
+					<div style="display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:18px;direction:ltr;margin-bottom:8px;">
+						<div style="color:#555;">
+							<i class="fa fa-calendar"></i> ${date_html}
+							<span style="margin:0 8px;">|</span>
+							<i class="fa fa-clock-o"></i> ${time_html}
+						</div>
+						${amount_html}
+					</div>
+				`;
+
+				// Details
+				const details_html = t.details
+					? `<div style="margin-top:8px;color:#444;"><strong>${__("Details")}:</strong> <div style="white-space:pre-wrap;">${frappe.format(t.details, {fieldtype:"Small Text"})}</div></div>`
+					: "";
+
+				// Card wrapper
+				return `
+					<div style="border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;">
+						${datetime_amount_row}
+						<div style="margin-bottom:4px;"><strong>${__("Type")}:</strong> ${t.type}</div>
+						<div style="margin-bottom:4px;"><strong>${__("Currency")}:</strong> ${t.currency}</div>
+						<div style="margin-bottom:4px;"><strong>${__("Balance")}:</strong> ${t.new_balance}</div>
+						${details_html}
+					</div>
+				`;
+			}).join("");
+
+			// Show dialog with cards
+			const d = new frappe.ui.Dialog({
+				title: __("Recent Transactions"),
+				fields: [{ fieldtype: "HTML", options: `<div>${cards_html}</div>` }],
+				primary_action_label: __("Close"),
+				primary_action: () => d.hide(),
+			});
+			d.show();
+		},
+	});
+};

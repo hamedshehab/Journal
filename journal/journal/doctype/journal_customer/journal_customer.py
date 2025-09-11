@@ -126,7 +126,33 @@ def get_grouped_journal_transactions(journal_customer, from_date=None, to_date=N
     journal_customer_doc = frappe.get_doc("Journal Customer", journal_customer)
     balances = getattr(journal_customer_doc, "customer_balances", [])
 
-    return {"groups": result, "balances": balances}
+    # Prepare filters for UI (only return those that are not None)
+    applied_filters = {}
+    if from_date:
+        applied_filters["from_date"] = from_date
+    if to_date:
+        applied_filters["to_date"] = to_date
+    if tx_type:
+        applied_filters["type"] = tx_type
+    if currency:
+        applied_filters["currency"] = currency
+
+    # Recent transactions only if filters applied
+    recent_transactions = []
+    if applied_filters:  # <-- check if dict has anything
+        recent_transactions = frappe.get_all(
+            "Journal Transaction",
+            filters={"customer": journal_customer, "docstatus": ["!=", 2]},
+            fields=[
+                "name","units","unit_price","currency","type",
+                "amount","old_balance","new_balance",
+                "docstatus","modified","datetime"
+            ],
+            order_by="datetime desc",
+            limit=5
+        )
+
+    return {"groups": result, "balances": balances, "filters": applied_filters, "recent_transactions": recent_transactions}
 
 
 @frappe.whitelist()
