@@ -1,0 +1,26 @@
+[
+ {
+  "customer_type": "عميل",
+  "description": "",
+  "docstatus": 0,
+  "doctype": "Journal Customer Type",
+  "modified": "2025-09-02 11:45:43.883809",
+  "name": "عميل"
+ },
+ {
+  "customer_type": "مورد",
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Journal Customer Type",
+  "modified": "2025-09-02 11:45:50.267232",
+  "name": "مورد"
+ },
+ {
+  "customer_type": "عام",
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Journal Customer Type",
+  "modified": "2025-09-02 11:45:16.373965",
+  "name": "عام"
+ }
+]

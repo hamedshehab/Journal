@@ -1,5 +1,12 @@
 frappe.listview_settings['Journal Customer'] = {
     onload: function(listview) {
+        if(listview.page.sidebar){
+            listview.page.sidebar.remove();
+            let sidebarToggle = listview.page.wrapper.find('.list-sidebar-toggle');
+            if (sidebarToggle.length) {
+                sidebarToggle.remove();
+            }
+        }
         listview.page.add_inner_button(__('New Transaction'), function() {
             frappe.call({
                 method: "frappe.client.get_list",

@@ -6,10 +6,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_wagv",
   "customer_name",
   "phone_number",
   "type",
   "currency",
+  "customer_balances",
+  "balances",
   "column_break_ejvy",
   "yemeni_balance",
   "saudi_balance",
@@ -17,20 +20,23 @@
  ],
  "fields": [
   {
+   "depends_on": "eval:doc.__islocal\r\n",
    "fieldname": "phone_number",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Phone Number",
    "reqd": 1
   },
   {
    "default": "\u0639\u0627\u0645",
+   "depends_on": "eval:doc.__islocal\r\n",
    "fieldname": "type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\u0639\u0627\u0645\n\u0639\u0645\u064a\u0644\n\u0645\u0648\u0631\u062f"
+   "options": "Journal Customer Type"
   },
   {
    "fieldname": "customer_name",
@@ -42,7 +48,7 @@
   {
    "fieldname": "yemeni_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Yemeni Balance",
    "options": "YER",
    "read_only": 1
@@ -50,7 +56,7 @@
   {
    "fieldname": "saudi_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Saudi Balance",
    "options": "SAR",
    "read_only": 1
@@ -58,7 +64,7 @@
   {
    "fieldname": "usd_balance",
    "fieldtype": "Currency",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "USD Balance",
    "options": "currency",
    "read_only": 1
@@ -75,12 +81,31 @@
   {
    "fieldname": "column_break_ejvy",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_balances",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Customer Balances",
+   "options": "Journal Customer Balance"
+  },
+  {
+   "fieldname": "section_break_wagv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "balances",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Balances"
   }
  ],
  "grid_page_length": 50,
+ "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-31 10:31:25.754169",
+ "modified": "2025-09-16 12:31:42.579506",
  "modified_by": "Administrator",
  "module": "Journal",
  "name": "Journal Customer",
@@ -96,6 +121,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Journal User",
    "share": 1,
    "write": 1
   }

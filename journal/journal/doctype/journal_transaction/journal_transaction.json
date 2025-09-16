@@ -13,12 +13,12 @@
   "type",
   "amended_from",
   "datetime",
-  "currency_link",
   "column_break_pwsh",
   "details",
   "amount",
   "old_balance",
-  "new_balance"
+  "new_balance",
+  "purpose"
  ],
  "fields": [
   {
@@ -35,16 +35,16 @@
    "in_list_view": 1,
    "label": "Amount",
    "non_negative": 1,
-   "options": "currency_link",
+   "options": "currency",
    "read_only": 1,
    "reqd": 1
   },
   {
    "default": "YER",
    "fieldname": "currency",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Currency",
-   "options": "YER\nSAR\nUSD",
+   "options": "Currency",
    "reqd": 1
   },
   {
@@ -83,13 +83,6 @@
    "label": "Title"
   },
   {
-   "fieldname": "currency_link",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Currency Link",
-   "options": "Currency"
-  },
-  {
    "fieldname": "column_break_pwsh",
    "fieldtype": "Column Break"
   },
@@ -97,14 +90,14 @@
    "fieldname": "old_balance",
    "fieldtype": "Currency",
    "label": "Old Balance",
-   "options": "currency_link",
+   "options": "currency",
    "read_only": 1
   },
   {
    "fieldname": "new_balance",
    "fieldtype": "Currency",
    "label": "New Balance",
-   "options": "currency_link",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -121,13 +114,20 @@
    "non_negative": 1,
    "options": "currency_link",
    "reqd": 1
+  },
+  {
+   "default": "\u0639\u0627\u0645",
+   "fieldname": "purpose",
+   "fieldtype": "Link",
+   "label": "Purpose",
+   "options": "Journal Transaction Purpose"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-31 10:07:02.520449",
+ "modified": "2025-09-16 12:32:19.845372",
  "modified_by": "Administrator",
  "module": "Journal",
  "name": "Journal Transaction",
@@ -143,6 +143,19 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Journal User",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

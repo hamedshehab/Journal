@@ -1,0 +1,23 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Journal Transaction Purpose",
+  "modified": "2025-09-11 13:30:43.288188",
+  "name": "عام",
+  "purpose": "عام"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Journal Transaction Purpose",
+  "modified": "2025-09-11 13:30:50.730662",
+  "name": "حوالة",
+  "purpose": "حوالة"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Journal Transaction Purpose",
+  "modified": "2025-09-11 13:30:58.374188",
+  "name": "اجور نقل",
+  "purpose": "اجور نقل"
+ }
+]

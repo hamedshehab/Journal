@@ -16,7 +16,9 @@ frappe.ui.form.on("Journal Transaction", {
         if(frm.doc.docstatus != 1){
             update_old_balance(frm)
             update_new_balance(frm)
-            frm.set_value("currency_link", frm.doc.currency);
+            frm.refresh_field("amount");
+            frm.refresh_field("old_balance");
+            frm.refresh_field("new_balance");
         }
     },
     amount: function(frm) {
@@ -59,27 +61,32 @@ function compute_amount(frm) {
 
 
 function load_customer_balances(frm) {
-    // fetch once from DB
-    frappe.db.get_value("Journal Customer", frm.doc.customer, 
-        ["yemeni_balance", "saudi_balance", "usd_balance"]).then(r => {
-        if (!r.message) return;
+    // Fetch customer_balances child table from Journal Customer
+    frappe.db.get_doc("Journal Customer", frm.doc.customer).then(doc => {
+        if (!doc || !doc.customer_balances) return;
 
-        frm.doc._balances = {
-            YER: r.message.yemeni_balance,
-            SAR: r.message.saudi_balance,
-            USD: r.message.usd_balance
-        };
+        // Map balances by currency (store in frm, not frm.doc)
+        frm._balances = {};
+        doc.customer_balances.forEach(row => {
+            if (row.currency && row.balance != null) {
+                frm._balances[row.currency] = row.balance;
+            }
+        });
 
-        // immediately update balances if currency is selected
+        // Immediately update balances if currency is selected
         update_old_balance(frm);
         update_new_balance(frm);
     });
 }
 
 function update_old_balance(frm) {
-    if (frm.doc._balances && frm.doc.currency) {
-        let bal = frm.doc._balances[frm.doc.currency] || 0;
+    if (frm._balances && frm.doc.currency && frm._balances.hasOwnProperty(frm.doc.currency)) {
+        console.log(frm._balances[frm.doc.currency])
+        let bal = frm._balances[frm.doc.currency] || 0;
         frm.set_value("old_balance", bal);
+        console.log(bal)
+    } else {
+        frm.set_value("old_balance", 0);
     }
 }
 
