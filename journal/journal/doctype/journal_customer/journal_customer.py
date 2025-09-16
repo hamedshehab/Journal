@@ -14,45 +14,83 @@ class JournalCustomer(Document):
 
 @frappe.whitelist()
 def download_transactions_pdf():
-	# Get filters directly from query parameters
-	filters = frappe._dict(frappe.form_dict)
+    # Get filters directly from query parameters
+    filters = frappe._dict(frappe.form_dict)
 
-	customer = filters.get("customer")
-	if not customer:
-		frappe.throw(_("Customer is required in filters."))
+    customer = filters.get("customer")
+    if not customer:
+        frappe.throw(_("Customer is required in filters."))
 
-	# Remove non-filter keys if needed (e.g., 'cmd')
-	filters.pop("cmd", None)
+    # Remove non-filter keys if needed (e.g., 'cmd')
+    filters.pop("cmd", None)
 
-	# Fetch transactions using all filters (including customer)
-	transactions = frappe.get_list(
-		"Journal Transaction",
-		filters=filters,
-		fields=["name","title", "datetime", "amount", "type"]
-	)
+    # Handle from_date and to_date for 'datetime' field
+    from_date = filters.pop("from_date", None)
+    to_date = filters.pop("to_date", None)
 
-	if not transactions:
-		frappe.throw(_("No transactions found for this customer."))
+    tx_filters = {"customer": customer}
 
-	# Prepare filters for template (exclude 'customer')
-	template_filters = {k: v for k, v in filters.items() if k != "customer"}
+    if from_date and to_date:
+        tx_filters["datetime"] = ["between", [from_date, to_date]]
+    elif from_date:
+        tx_filters["datetime"] = [">=", from_date]
+    elif to_date:
+        tx_filters["datetime"] = ["<=", to_date]
 
-	# Render HTML template
-	html = frappe.render_template(
-    	"journal/templates/includes/transactions_pdf.html",
-    	{
-        	"customer": customer,
-        	"transactions": transactions,
-        	"filters": template_filters
-    	}
-	)
+    # Add remaining filters
+    for k, v in filters.items():
+        if k != "customer":
+            tx_filters[k] = v
 
-	# Convert to PDF
-	pdf_data = get_pdf(html)
+    # Fetch transactions using all filters (including customer)
+    transactions = frappe.get_list(
+        "Journal Transaction",
+        filters=tx_filters,
+        fields=["name", "title", "datetime", "amount", "type"]
+    )
 
-	frappe.local.response.filename = f"Transactions_{customer}.pdf"
-	frappe.local.response.filecontent = pdf_data
-	frappe.local.response.type = "download"
+    if not transactions:
+        frappe.throw(_("No transactions found for this customer."))
+
+    # Prepare filters for template (exclude 'customer') and make them English readable
+    template_filters = {}
+    for k, v in tx_filters.items():
+        if k == "customer":
+            continue
+        # Humanize key
+        label = k.replace("_", " ").title()
+        # Format value for display
+        if isinstance(v, list) and len(v) == 2:
+            # e.g., ["between", [from_date, to_date]]
+            op, val = v
+            if op == "between" and isinstance(val, list) and len(val) == 2:
+                value_str = f"{val[0]} to {val[1]}"
+            elif op == ">=":
+                value_str = f"From {val}"
+            elif op == "<=":
+                value_str = f"Up to {val}"
+            else:
+                value_str = str(v)
+        else:
+            value_str = str(v)
+        template_filters[label] = value_str
+
+    # Render HTML template
+    html = frappe.render_template(
+        "journal/templates/includes/transactions_pdf.html",
+        {
+            "customer": customer,
+            "transactions": transactions,
+            "filters": template_filters
+        }
+    )
+
+    # Convert to PDF
+    pdf_data = get_pdf(html)
+
+    frappe.local.response.filename = f"Transactions_{customer}.pdf"
+    frappe.local.response.filecontent = pdf_data
+    frappe.local.response.type = "download"
 
 
 

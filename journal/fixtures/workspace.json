@@ -1,0 +1,70 @@
+[
+ {
+  "charts": [],
+  "content": "[{\"id\":\"4bE3wcLB0g\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Journal</span>\",\"col\":12}},{\"id\":\"hfPSR37FnR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Customer\",\"col\":3}},{\"id\":\"eeo-Xn4Xt5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Transaction\",\"col\":3}}]",
+  "custom_blocks": [],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "file",
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Journal",
+  "links": [],
+  "modified": "2025-09-16 13:07:13.231760",
+  "module": null,
+  "name": "Journal",
+  "number_cards": [],
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "restrict_to_domain": null,
+  "roles": [
+   {
+    "parent": "Journal",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Journal User"
+   }
+  ],
+  "sequence_id": 1.0,
+  "shortcuts": [
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Journal Customer",
+    "link_to": "Journal Customer",
+    "parent": "Journal",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Journal Transaction",
+    "link_to": "Journal Transaction",
+    "parent": "Journal",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   }
+  ],
+  "title": "Journal"
+ }
+]
