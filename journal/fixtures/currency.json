@@ -1,0 +1,50 @@
+[
+ {
+  "currency_name": "SAR",
+  "custom_background_color": "#E8F5E9",
+  "custom_text_color": "#2E7D32",
+  "docstatus": 0,
+  "doctype": "Currency",
+  "enabled": 1,
+  "fraction": "Halala",
+  "fraction_units": 100,
+  "modified": "2025-09-02 16:38:10.565819",
+  "name": "SAR",
+  "number_format": "#,###.##",
+  "smallest_currency_fraction_value": 0.0,
+  "symbol": "ر.س",
+  "symbol_on_right": 0
+ },
+ {
+  "currency_name": "USD",
+  "custom_background_color": "#E3F2FD",
+  "custom_text_color": "#0D47A1",
+  "docstatus": 0,
+  "doctype": "Currency",
+  "enabled": 1,
+  "fraction": "Cent",
+  "fraction_units": 100,
+  "modified": "2025-09-02 16:35:39.300057",
+  "name": "USD",
+  "number_format": "#,###.##",
+  "smallest_currency_fraction_value": 0.01,
+  "symbol": "$",
+  "symbol_on_right": 0
+ },
+ {
+  "currency_name": "YER",
+  "custom_background_color": "#FFF3E0",
+  "custom_text_color": "#E65100",
+  "docstatus": 0,
+  "doctype": "Currency",
+  "enabled": 1,
+  "fraction": "Fils",
+  "fraction_units": 100,
+  "modified": "2025-09-02 16:36:38.740906",
+  "name": "YER",
+  "number_format": "#,###.##",
+  "smallest_currency_fraction_value": 0.01,
+  "symbol": "﷼",
+  "symbol_on_right": 0
+ }
+]
