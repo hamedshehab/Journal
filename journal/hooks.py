@@ -252,4 +252,5 @@ fixtures = [
     {"doctype": "Workspace", "filters": [["name", "=", "Journal"]]},
     {"doctype": "Custom Field", "filters": [["dt", "=", "currency"]]},
     {"doctype": "Currency", "filters": [["enabled", "=", 1]]},
+    {"doctype": "DocPerm", "filters": [["role", "=", "Journal User"]]},
 ]
