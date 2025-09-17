@@ -250,4 +250,6 @@ fixtures = [
     {"doctype": "Journal Transaction Purpose"},
     {"doctype": "Journal Customer Type"},
     {"doctype": "Workspace", "filters": [["name", "=", "Journal"]]},
+    {"doctype": "Custom Field", "filters": [["dt", "=", "currency"]]},
+    {"doctype": "Currency", "filters": [["enabled", "=", 1]]},
 ]
